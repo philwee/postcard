@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Postcard Generator</title>
+  <style>
+    #postcard {
+      display: none;
+      width: 400px;
+      height: 600px;
+      border: 1px solid black;
+      padding: 20px;
+      margin: 20px;
+    }
+
+    #photo {
+      max-width: 100%;
+      max-height: 400px;
+    }
+
+    #text {
+      font-size: 20px;
+      margin-top: 20px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+    <h1>Postcard Generator</h1>
+  
+    <div id="inputSection">
+      <label for="photoInput">Select a photo:</label>
+      <input type="file" id="photoInput">
+      <br>
+      <label for="textInput">Enter text:</label>
+      <br>
+      <textarea id="textInput" rows="4"></textarea>
+      <br>
+      <label for="signatureInput">Sign your name:</label>
+      <input type="text" id="signatureInput">
+      <br>
+    </div>
+    
+    <div id="postcard">
+      <img id="photo" src="" alt="Photo">
+      <div id="text"></div>
+      <div id="signature"></div>
+    </div>
+  
+    <br>
+    <button id="generateButton">Generate Postcard</button>
+    <br><br>
+    <button id="downloadButton" disabled>Download Postcard</button>
+    <button id="shareButton" disabled>Share Postcard</button>
+    <button id="editButton" style="display: none;">Edit Postcard</button>
+
+  <script>
+var postcardGenerated = false;
+
+document.getElementById("generateButton").addEventListener("click", function() {
+  var photoInput = document.getElementById("photoInput");
+  var textInput = document.getElementById("textInput");
+  var signatureInput = document.getElementById("signatureInput");
+  var photo = document.getElementById("photo");
+  var text = document.getElementById("text");
+  var signature = document.getElementById("signature");
+  var postcard = document.getElementById("postcard");
+  var inputSection = document.getElementById("inputSection");
+  var downloadButton = document.getElementById("downloadButton");
+  var shareButton = document.getElementById("shareButton");
+  var editButton = document.getElementById("editButton");
+  var generateButton = document.getElementById("generateButton"); // Added this line
+
+  if (photoInput.files && photoInput.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      photo.src = e.target.result;
+    };
+    reader.readAsDataURL(photoInput.files[0]);
+  }
+
+  text.innerHTML = textInput.value;
+  signature.innerHTML = signatureInput.value;
+
+  postcard.style.display = "block";
+  inputSection.style.display = "none";
+  downloadButton.disabled = false;
+  shareButton.disabled = false;
+  editButton.style.display = "inline-block";
+  generateButton.style.display = "none"; // Added this line
+
+  postcardGenerated = true;
+});
+
+document.getElementById("downloadButton").addEventListener("click", function() {
+  var postcard = document.getElementById("postcard");
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  canvas.width = postcard.offsetWidth;
+  canvas.height = postcard.offsetHeight;
+
+  html2canvas(postcard).then(function(renderedCanvas) {
+    context.drawImage(renderedCanvas, 0, 0);
+    var imageDataUrl = canvas.toDataURL("image/jpeg");
+
+    var link = document.createElement("a");
+    link.href = imageDataUrl;
+    link.download = "postcard.jpg";
+    link.click();
+  });
+});
+
+document.getElementById("shareButton").addEventListener("click", function() {
+  var postcard = document.getElementById("postcard");
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  canvas.width = postcard.offsetWidth;
+  canvas.height = postcard.offsetHeight;
+
+  html2canvas(postcard).then(function(renderedCanvas) {
+    context.drawImage(renderedCanvas, 0, 0);
+    var imageDataUrl = canvas.toDataURL("image/jpeg");
+
+    if (navigator.share) {
+      navigator.share({
+        title: "My Postcard",
+        text: "Check out this postcard!",
+        files: [new File([imageDataUrl], "postcard.jpg", { type: "image/jpeg" })],
+      })
+        .then(function() {
+          console.log("Postcard shared successfully");
+        })
+        .catch(function(error) {
+          console.error("Error sharing postcard:", error);
+        });
+    } else {
+      console.error("Web Share API is not supported in this browser");
+    }
+  });
+});
+
+document.getElementById("editButton").addEventListener("click", function() {
+  var photo = document.getElementById("photo");
+  var text = document.getElementById("text");
+  var signature = document.getElementById("signature");
+  var postcard = document.getElementById("postcard");
+  var inputSection = document.getElementById("inputSection");
+  var downloadButton = document.getElementById("downloadButton");
+  var shareButton = document.getElementById("shareButton");
+  var editButton = document.getElementById("editButton");
+  var generateButton = document.getElementById("generateButton"); // Added this line
+
+  photo.src = "";
+  text.innerHTML = "";
+  signature.innerHTML = "";
+  postcard.style.display = "none";
+  inputSection.style.display = "block";
+  downloadButton.disabled = true;
+  shareButton.disabled = true;
+  editButton.style.display = "none";
+  generateButton.style.display = "inline-block"; // Added this line
+
+  postcardGenerated = false;
+});
+
+// Check if the postcard was already generated (e.g., due to a page refresh)
+if (postcardGenerated) {
+  var generateButton = document.getElementById("generateButton");
+  generateButton.style.display = "none";
+  editButton.style.display = "inline-block";
+}
+
+  </script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+</html>
